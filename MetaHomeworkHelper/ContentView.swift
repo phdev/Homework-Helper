@@ -35,7 +35,7 @@ struct ContentView: View {
         }
         .onChange(of: wearables.registrationState) { _, newState in
             if newState == .registered {
-                flowState = .registered
+                startStreamAndListen()
             }
         }
         .onChange(of: speech.triggerDetected) { _, detected in
@@ -86,6 +86,9 @@ struct ContentView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
+        }
+        .onAppear {
+            startStreamAndListen()
         }
     }
 
@@ -192,11 +195,14 @@ struct ContentView: View {
     // MARK: - Actions
 
     private func startStreamAndListen() {
+        flowState = .streaming
         speech.requestPermissions { granted in
-            guard granted else { return }
+            guard granted else {
+                flowState = .registered
+                return
+            }
             wearables.startStream()
             speech.startTriggerListening()
-            flowState = .streaming
         }
     }
 
